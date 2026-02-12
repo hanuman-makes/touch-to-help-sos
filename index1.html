@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Touch-to-Help SOS</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to bottom right, #ff4b4b, #ff9a3c);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(12px);
+      border-radius: 25px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      text-align: center;
+      color: white;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      margin: 15px 0;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.25);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 18px;
+      margin: 12px 0;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.04);
+    }
+
+    .btn:disabled {
+      background: gray !important;
+      cursor: not-allowed;
+    }
+
+    .ambulance { background: #00c853; }
+    .police { background: #2979ff; }
+    .family { background: #ff9100; }
+
+    .icon {
+      font-size: 32px;
+    }
+
+    .lang-switch button {
+      background: rgba(255,255,255,0.3);
+      border: none;
+      padding: 8px 14px;
+      margin: 5px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+    }
+
+    .lang-switch button:hover {
+      background: rgba(255,255,255,0.45);
+    }
+
+    footer {
+      margin-top: 18px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1 id="title">🚨 Touch-to-Help SOS 🚨</h1>
+
+    <!-- Language Switch -->
+    <div class="lang-switch">
+      <button onclick="setLanguage('en')">English</button>
+      <button onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+      <button onclick="setLanguage('hi')">हिन्दी</button>
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status">
+      📍 Getting Live Location...
+    </div>
+
+    <!-- Buttons -->
+    <button class="btn ambulance" onclick="callNumber('108')">
+      <span class="icon">🚑</span> <span id="ambulanceText">Call Ambulance</span>
+    </button>
+
+    <button class="btn police" onclick="callNumber('100')">
+      <span class="icon">👮</span> <span id="policeText">Call Police</span>
+    </button>
+
+    <button class="btn family" id="familyBtn" onclick="sendWhatsApp()" disabled>
+      <span class="icon">📲</span> <span id="familyText">WhatsApp Family</span>
+    </button>
+
+    <footer>
+      One Tap Help • NFC + QR Ready • Universal Access
+    </footer>
+
+  </div>
+
+  <script>
+    /* ✅ CONFIG */
+    const FAMILY_NUMBER = "919999888777";
+    let liveLocationURL = "";
+    let currentLang = "en";
+
+    /* ✅ Language Pack */
+    const LANG = {
+      en: {
+        title: "🚨 Touch-to-Help SOS 🚨",
+        statusReady: "✅ Location Ready. Tap for Help!",
+        statusDenied: "⚠️ Location Denied. Calls still work.",
+        ambulance: "Call Ambulance (108)",
+        police: "Call Police (100)",
+        family: "WhatsApp Family + Location"
+      },
+      kn: {
+        title: "🚨 ತಕ್ಷಣ ಸಹಾಯ SOS 🚨",
+        statusReady: "✅ ಸ್ಥಳ ಸಿದ್ಧವಾಗಿದೆ. ಸಹಾಯಕ್ಕಾಗಿ ಒತ್ತಿ!",
+        statusDenied: "⚠️ ಸ್ಥಳ ಅನುಮತಿ ಇಲ್ಲ. ಕರೆಗಳು ಕೆಲಸ ಮಾಡುತ್ತವೆ.",
+        ambulance: "ಆಂಬುಲೆನ್ಸ್ ಕರೆ (108)",
+        police: "ಪೊಲೀಸ್ ಕರೆ (100)",
+        family: "ಕುಟುಂಬಕ್ಕೆ WhatsApp"
+      },
+      hi: {
+        title: "🚨 तुरंत सहायता SOS 🚨",
+        statusReady: "✅ लोकेशन तैयार है। मदद के लिए दबाएं!",
+        statusDenied: "⚠️ लोकेशन नहीं मिली। कॉल फिर भी काम करेगा।",
+        ambulance: "एम्बुलेंस कॉल करें (108)",
+        police: "पुलिस कॉल करें (100)",
+        family: "परिवार को WhatsApp"
+      }
+    };
+
+    /* ✅ Set Language */
+    function setLanguage(lang) {
+      currentLang = LANG[lang] ? lang : "en";
+      const t = LANG[currentLang];
+
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("ambulanceText").innerText = t.ambulance;
+      document.getElementById("policeText").innerText = t.police;
+      document.getElementById("familyText").innerText = t.family;
+    }
+
+    /* ✅ Auto Language Detect */
+    function autoDetectLanguage() {
+      const langCode = navigator.language.slice(0, 2);
+      setLanguage(langCode);
+    }
+
+    /* ✅ Location */
+    function getLocation() {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          liveLocationURL =
+            `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+
+          document.getElementById("status").innerText =
+            LANG[currentLang].statusReady;
+
+          document.getElementById("familyBtn").disabled = false;
+        },
+        () => {
+          document.getElementById("status").innerText =
+            LANG[currentLang].statusDenied;
+        }
+      );
+    }
+
+    /* ✅ Call Function */
+    function callNumber(num) {
+      window.location.href = "tel:" + num;
+    }
+
+    /* ✅ WhatsApp SOS */
+    function sendWhatsApp() {
+      const msg =
+        `🚨 EMERGENCY ALERT!\nHelp needed immediately.\n📍 Location: ${liveLocationURL}`;
+
+      window.open(
+        `https://wa.me/${FAMILY_NUMBER}?text=${encodeURIComponent(msg)}`,
+        "_blank"
+      );
+    }
+
+    /* ✅ Start */
+    autoDetectLanguage();
+    getLocation();
+  </script>
+
+</body>
+</html>
