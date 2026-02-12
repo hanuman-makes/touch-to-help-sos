@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Touch-to-Help SOS</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      background: red;
+      color: white;
+      padding: 18px;
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .card {
+      background: white;
+      margin: 15px;
+      padding: 18px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+      width: 90%;
+      padding: 16px;
+      font-size: 18px;
+      margin: 10px auto;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: block;
+    }
+
+    button:disabled {
+      background: gray !important;
+      cursor: not-allowed;
+    }
+
+    .green { background: green; color: white; }
+    .blue { background: blue; color: white; }
+    .orange { background: orange; color: white; }
+
+    .langBtn {
+      width: auto;
+      padding: 8px 14px;
+      margin: 5px;
+      font-size: 14px;
+      border-radius: 10px;
+      background: black;
+      color: white;
+      display: inline-block;
+    }
+
+    #status {
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Title -->
+  <h1 id="title">🚨 Touch-to-Help SOS 🚨</h1>
+
+  <!-- Language Switch -->
+  <div>
+    <button class="langBtn" onclick="setLanguage('en')">English</button>
+    <button class="langBtn" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+    <button class="langBtn" onclick="setLanguage('hi')">हिन्दी</button>
+  </div>
+
+  <!-- Status Card -->
+  <div class="card">
+    <p id="status">📍 Getting Live Location...</p>
+  </div>
+
+  <!-- SOS Buttons -->
+  <button id="ambulanceBtn" class="green" onclick="callNumber('108')" disabled>
+    🚑 Call Ambulance
+  </button>
+
+  <button id="policeBtn" class="blue" onclick="callNumber('100')" disabled>
+    👮 Call Police
+  </button>
+
+  <button id="familyBtn" class="orange" onclick="sendWhatsApp()" disabled>
+    🆘 WhatsApp Family
+  </button>
+
+  <script>
+    /***********************
+     * CONFIGURATION
+     ***********************/
+    const FAMILY_NUMBER = "919999888777"; // Change this number
+
+    let liveLocationURL = "";
+
+    /***********************
+     * MULTI-LANGUAGE TEXT
+     ***********************/
+    const LANG_TEXT = {
+      en: {
+        title: "🚨 Touch-to-Help SOS 🚨",
+        statusReady: "✅ Location Ready. Tap a button.",
+        ambulance: "🚑 Call Ambulance",
+        police: "👮 Call Police",
+        family: "🆘 WhatsApp Family"
+      },
+      kn: {
+        title: "🚨 ತಕ್ಷಣ ಸಹಾಯ SOS 🚨",
+        statusReady: "✅ ಸ್ಥಳ ಸಿದ್ಧವಾಗಿದೆ. ಬಟನ್ ಒತ್ತಿ.",
+        ambulance: "🚑 ಆಂಬುಲೆನ್ಸ್ ಕರೆ ಮಾಡಿ",
+        police: "👮 ಪೊಲೀಸ್ ಕರೆ ಮಾಡಿ",
+        family: "🆘 ಕುಟುಂಬಕ್ಕೆ WhatsApp"
+      },
+      hi: {
+        title: "🚨 तुरंत सहायता SOS 🚨",
+        statusReady: "✅ लोकेशन तैयार है। बटन दबाएं।",
+        ambulance: "🚑 एम्बुलेंस कॉल करें",
+        police: "👮 पुलिस कॉल करें",
+        family: "🆘 परिवार को WhatsApp"
+      }
+    };
+
+    /***********************
+     * LANGUAGE FUNCTIONS
+     ***********************/
+    function setLanguage(lang) {
+      const t = LANG_TEXT[lang] || LANG_TEXT.en;
+
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("ambulanceBtn").innerText = t.ambulance;
+      document.getElementById("policeBtn").innerText = t.police;
+      document.getElementById("familyBtn").innerText = t.family;
+    }
+
+    function autoDetectLanguage() {
+      const browserLang = navigator.language.slice(0, 2);
+      setLanguage(browserLang);
+    }
+
+    /***********************
+     * LOCATION FUNCTIONS
+     ***********************/
+    function enableButtons() {
+      document.getElementById("ambulanceBtn").disabled = false;
+      document.getElementById("policeBtn").disabled = false;
+      document.getElementById("familyBtn").disabled = false;
+    }
+
+    function getLiveLocation() {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          liveLocationURL = `https://maps.google.com/?q=${lat},${lon}`;
+
+          document.getElementById("status").innerText =
+            LANG_TEXT.en.statusReady;
+
+          enableButtons();
+        },
+        () => {
+          document.getElementById("status").innerText =
+            "❌ Location Permission Denied!";
+        }
+      );
+    }
+
+    /***********************
+     * EMERGENCY ACTIONS
+     ***********************/
+    function callNumber(num) {
+      window.location.href = "tel:" + num;
+    }
+
+    function sendWhatsApp() {
+      const message =
+        `🚨 EMERGENCY ALERT!\nHelp needed immediately.\n\n📍 Location:\n${liveLocationURL}`;
+
+      const url =
+        `https://wa.me/${FAMILY_NUMBER}?text=${encodeURIComponent(message)}`;
+
+      window.open(url, "_blank");
+    }
+
+    /***********************
+     * START WEBSITE
+     ***********************/
+    autoDetectLanguage();
+    getLiveLocation();
+  </script>
+
+</body>
+</html>
